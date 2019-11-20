@@ -29,7 +29,6 @@ func connection(ctx context.Context, ip string, chanReq chan string, chanRes cha
 	for {
 		select {
 		case x := <-chanReq:
-			//fmt.Fprint(os.Stdout, x)
 			conn.Write([]byte(x+"\n"))
 			message, _ := bufio.NewReader(conn).ReadString('\n')
 			chanRes<- message
@@ -52,14 +51,12 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		scanner.Scan() 
-		//fmt.Println("OK", scanner.Text())
 		requestCh<- scanner.Text()
 
 		if err := scanner.Err(); err != nil {
 			fmt.Fprintln(os.Stderr, "reading standard input:", err)
 		}
-		fmt.Println(<-responseCh)
-		
+		fmt.Println(<-responseCh)	
 	}
 	
 }
