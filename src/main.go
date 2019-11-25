@@ -9,14 +9,21 @@ import (
 	"os/signal"
 	"context"
 	"time"
+	"github.com/spf13/pflag"
 )
 
+var timeOut time.Duration
 
-func connection(ctx context.Context, ip string, chanReq chan string, chanRes chan string) {
-	ctx, _ = context.WithTimeout(ctx, 3 * time.Second)
+func init() {
+	pflag.DurationVarP(&timeOut, "timeout", "t", 5 * time.Second, "timeout connection")
+}
+
+
+func connection(ctx context.Context, ip, port string, chanReq chan string, chanRes chan string, timeOut time.Duration) {
+	ctx2, _ := context.WithTimeout(ctx, timeOut)
 	var d net.Dialer
-	fmt.Fprint(os.Stdout, "Trying ", ip, "...\n")
-	conn, err := d.DialContext(ctx, "tcp", ip)
+	fmt.Fprint(os.Stdout, "Trying ", pflag.Arg(0)+":"+pflag.Arg(1), "...\n")
+	conn, err := d.DialContext(ctx2, "tcp", ip+":"+port)
 	if err != nil {
 		fmt.Printf("%s\n", err)
 		os.Exit(1)
@@ -38,6 +45,12 @@ func connection(ctx context.Context, ip string, chanReq chan string, chanRes cha
 
 
 func main() {
+	pflag.Parse()
+	if pflag.NArg() < 2 {
+		fmt.Println("USAGE: go-telnet [OPTIONS] ip:port")
+		os.Exit(1)
+	}
+
 	var requestCh = make(chan string)
 	var responseCh = make(chan string)
 	var signalCh = make(chan os.Signal, 1)
@@ -47,7 +60,7 @@ func main() {
 
 	ctx := context.Background()
 	
-	go connection(ctx, "smtp.yandex.ru:25", requestCh, responseCh)
+	go connection(ctx, pflag.Arg(0), pflag.Arg(1), requestCh, responseCh, timeOut)
 
 	fmt.Printf("%s", <-responseCh)
 	scanner := bufio.NewScanner(os.Stdin)
