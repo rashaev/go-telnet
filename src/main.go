@@ -47,7 +47,7 @@ func connection(ctx context.Context, ip, port string, chanReq chan string, chanR
 func main() {
 	pflag.Parse()
 	if pflag.NArg() < 2 {
-		fmt.Println("USAGE: go-telnet [OPTIONS] ip:port")
+		fmt.Println("USAGE: go-telnet [OPTIONS] <HOST> <PORT>")
 		os.Exit(1)
 	}
 
